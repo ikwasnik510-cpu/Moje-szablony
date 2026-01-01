@@ -1,0 +1,43 @@
+// server.js - main server
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const { nanoid } = require('nanoid');
+const archiver = require('archiver');
+const dotenv = require('dotenv');
+const fetch = require('node-fetch');
+const { Low, JSONFile } = require('lowdb');
+const cookieParser = require('cookie-parser');
+
+dotenv.config();
+
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || ''; // optional
+const ROBLOX_RECEIVER = 'Policja122883'; // Nick to receive Robux
+
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// Static public
+app.use('/', express.static(path.join(__dirname, 'public')));
+
+// Upload dirs
+const UPLOADS = path.join(__dirname, 'uploads');
+const TEMPLATES_DIR = path.join(UPLOADS, 'templates');
+const USERMEDIA_DIR = path.join(UPLOADS, 'usermedia');
+const PROOFS_DIR = path.join(UPLOADS, 'proofs');
+if (!fs.existsSync(UPLOADS)) fs.mkdirSync(UPLOADS);
+if (!fs.existsSync(TEMPLATES_DIR)) fs.mkdirSync(TEMPLATES_DIR);
+if (!fs.existsSync(USERMEDIA_DIR)) fs.mkdirSync(USERMEDIA_DIR);
+if (!fs.existsSync(PROOFS_DIR)) fs.mkdirSync(PROOFS_DIR);
+
+// LowDB setup
+const dbFile = path.join(__dirname, 'db.json');
+const adapter = new JSONFile(dbFile);
+const db = new Low(adapter);
+
+async function initDB() {
+  await db
